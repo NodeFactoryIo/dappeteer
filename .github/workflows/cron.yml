@@ -1,0 +1,44 @@
+name: "Validate compatiblity with metamask"
+
+on:
+  schedule:
+  - cron: "0 0 * * *"
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2-beta
+        with:
+          node-version: "14"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Tests
+        run: xvfb-run --auto-servernum yarn run test
+
+      - name: Submit issue
+        if: failure()
+        uses: imjohnbo/issue-bot@3daae12aa54d38685d7ff8459fc8a2aee8cea98b
+        with:
+          assignees: "BeroBurny, "
+          labels: "question, bug"
+          title: "[cron] Seems update broke dappeeter"
+          body: |
+            ### Agenda
+            Seems there is a new update of metamask that broke a dappeeter.
+
+            - [ ] Validate is not false alarm
+            - [ ] Fix issue
+          pinned: false
+          close-previous: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
